@@ -9,6 +9,7 @@ import wandb
 import tempfile
 from sklearn.model_selection import train_test_split
 from wandb_utils.log_artifact import log_artifact
+import os
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -35,19 +36,38 @@ def go(args):
     )
 
     # Save to output files
+    #for df, k in zip([trainval, test], ['trainval', 'test']):
+    #    logger.info(f"Uploading {k}_data.csv dataset")
+    #    with tempfile.NamedTemporaryFile("w") as fp:
+
+    #        df.to_csv(fp.name, index=False)
+        
+
+    #        log_artifact(
+    #            f"{k}_data.csv",
+    #            f"{k}_data",
+    #            f"{k} split of dataset",
+    #            fp.name,
+    #            run,
+    #        )
+
+    # Ensure output directory exists
+    os.makedirs("outputs", exist_ok=True)
     for df, k in zip([trainval, test], ['trainval', 'test']):
         logger.info(f"Uploading {k}_data.csv dataset")
-        with tempfile.NamedTemporaryFile("w") as fp:
 
-            df.to_csv(fp.name, index=False)
+        # Save to local file
+        local_path = f"outputs/{k}_data.csv"
+        df.to_csv(local_path, index=False)
 
-            log_artifact(
-                f"{k}_data.csv",
-                f"{k}_data",
-                f"{k} split of dataset",
-                fp.name,
-                run,
-            )
+        # Log to wandb
+        log_artifact(
+            f"{k}_data.csv",
+            f"{k}_data",
+            f"{k} split of dataset",
+            local_path,
+            run,
+        )
 
 
 if __name__ == "__main__":
